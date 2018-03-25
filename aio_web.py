@@ -7,7 +7,7 @@ from aiohttp import web
 
 async def index(request):
     await asyncio.sleep(0.5)
-    return web.Response(body=b'<h1>Index</h1>')
+    return web.Response(body=b'<h1>Index</h1>',headers={'content-type':'text/html'})
 
 async def hello(request):
     await asyncio.sleep(0.5)
