@@ -143,8 +143,8 @@ class Model(dict, metaclass=ModelMetaclass):
         except KeyError:
             raise AttributeError(r"'Model' object has no attribute '%s'" % key)
 
-def __setattr__(self, key, value):
-    self[key] = value
+    def __setattr__(self, key, value):
+        self[key] = value
     
     def getValue(self, key):
         return getattr(self, key, None)
@@ -213,12 +213,12 @@ def __setattr__(self, key, value):
         if rows != 1:
             logging.warn('failed to insert record: affected rows: %s' % rows)
 
-async def update(self):
-    args = list(map(self.getValue, self.__fields__))
-    args.append(self.getValue(self.__primary_key__))
-    rows = await execute(self.__update__, args)
-    if rows != 1:
-        logging.warn('failed to update by primary key: affected rows: %s' % rows)
+    async def update(self):
+        args = list(map(self.getValue, self.__fields__))
+        args.append(self.getValue(self.__primary_key__))
+        rows = await execute(self.__update__, args)
+        if rows != 1:
+            logging.warn('failed to update by primary key: affected rows: %s' % rows)
     
     async def remove(self):
         args = [self.getValue(self.__primary_key__)]
