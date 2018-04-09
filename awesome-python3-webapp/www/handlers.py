@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-__author__ = 'Tamchikit'
+__author__ = 'Michael Liao'
 
 ' url handlers '
 
@@ -36,8 +36,8 @@ def get_page_index(page_str):
 
 def user2cookie(user, max_age):
     '''
-        Generate cookie str by user.
-        '''
+    Generate cookie str by user.
+    '''
     # build cookie string by: id-expires-sha1
     expires = str(int(time.time() + max_age))
     s = '%s-%s-%s-%s' % (user.id, user.passwd, expires, _COOKIE_KEY)
@@ -51,8 +51,8 @@ def text2html(text):
 @asyncio.coroutine
 def cookie2user(cookie_str):
     '''
-        Parse cookie and load user if cookie is valid.
-        '''
+    Parse cookie and load user if cookie is valid.
+    '''
     if not cookie_str:
         return None
     try:
@@ -79,10 +79,10 @@ def cookie2user(cookie_str):
 def index(request):
     summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
     blogs = [
-             Blog(id='1', name='Test Blog', summary=summary, created_at=time.time()-120),
-             Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
-             Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
-             ]
+        Blog(id='1', name='Test Blog', summary=summary, created_at=time.time()-120),
+        Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
+        Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
+    ]
     return {
         '__template__': 'blogs.html',
         'blogs': blogs
@@ -99,19 +99,19 @@ def get_blog(id):
         '__template__': 'blog.html',
         'blog': blog,
         'comments': comments
-}
+    }
 
 @get('/register')
 def register():
     return {
         '__template__': 'register.html'
-}
+    }
 
 @get('/signin')
 def signin():
     return {
         '__template__': 'signin.html'
-}
+    }
 
 @post('/api/authenticate')
 def authenticate(*, email, passwd):
@@ -146,13 +146,20 @@ def signout(request):
     logging.info('user signed out.')
     return r
 
+@get('/manage/blogs')
+def manage_blogs(*, page='1'):
+    return {
+        '__template__': 'manage_blogs.html',
+        'page_index': get_page_index(page)
+    }
+
 @get('/manage/blogs/create')
 def manage_create_blog():
     return {
         '__template__': 'manage_blog_edit.html',
         'id': '',
         'action': '/api/blogs'
-}
+    }
 
 _RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$')
 _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
@@ -180,6 +187,16 @@ def api_register_user(*, email, name, passwd):
     r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
     return r
 
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blogs=())
+    blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, blogs=blogs)
+
 @get('/api/blogs/{id}')
 def api_get_blog(*, id):
     blog = yield from Blog.find(id)
@@ -197,4 +214,3 @@ def api_create_blog(request, *, name, summary, content):
     blog = Blog(user_id=request.__user__.id, user_name=request.__user__.name, user_image=request.__user__.image, name=name.strip(), summary=summary.strip(), content=content.strip())
     yield from blog.save()
     return blog
-

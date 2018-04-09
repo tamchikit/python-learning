@@ -35,8 +35,8 @@ def init_jinja2(app, **kw):
     path = kw.get('path', None)
     if path is None:
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-        logging.info('set jinja2 template path: %s' % path)
-        env = Environment(loader=FileSystemLoader(path), **options)
+    logging.info('set jinja2 template path: %s' % path)
+    env = Environment(loader=FileSystemLoader(path), **options)
     filters = kw.get('filters', None)
     if filters is not None:
         for name, f in filters.items():
@@ -108,7 +108,6 @@ def response_factory(app, handler):
                 resp.content_type = 'application/json;charset=utf-8'
                 return resp
             else:
-                r['__user__'] = request.__user__
                 resp = web.Response(body=app['__templating__'].get_template(template).render(**r).encode('utf-8'))
                 resp.content_type = 'text/html;charset=utf-8'
                 return resp
@@ -152,3 +151,4 @@ async def init(loop):
 loop = asyncio.get_event_loop()
 loop.run_until_complete(init(loop))
 loop.run_forever()
+
